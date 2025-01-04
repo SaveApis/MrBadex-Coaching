@@ -1,0 +1,7 @@
+﻿schema: schema.graphql
+documents: '**/*.graphql'
+
+extensions:
+  endpoints:
+    development:
+      url: http://localhost/graphql

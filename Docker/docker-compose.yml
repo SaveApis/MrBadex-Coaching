@@ -1,0 +1,40 @@
+﻿services:
+  backend:
+    depends_on:
+      redis:
+        condition: service_healthy
+    hostname: backend
+    build:
+      context: ..
+      dockerfile: src/Backend/Dockerfile
+    image: mrbadexcoaching:dev
+    ports:
+      - "80:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=80
+      - sso_project=mrbadexx-coaching
+      - jwt_key=<your-token>
+      - jwt_issuer=mrbadex-coaching
+      - jwt_audience=mrbadex-coaching
+      - jwt_expiration=24
+      - hangfire_redis_name=mrbadex-coaching
+      - hangfire_redis_host=redis
+      - hangfire_redis_port=6379
+      - hangfire_redis_database=0
+      - "hangfire_redis_prefix=mrbadex-coaching:hangfire:"
+  redis:
+    hostname: redis
+    image: redis:8.0-M02-alpine3.20
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis:/data
+    healthcheck:
+      test: [ "CMD-SHELL", "redis-cli ping | grep PONG" ]
+      interval: 5s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  redis:
