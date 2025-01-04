@@ -26,6 +26,7 @@ jobs:
           VALIDATE_ALL_CODEBASE: false
           VALIDATE_CSHARP: true
           VALIDATE_GITHUB_ACTIONS: true
+          VALIDATE_KUBERNETES_KUBECONFORM: true
   build-csharp-backend:
     name: Build C# (Backend, ${{ matrix.configuration }})
     runs-on: self-hosted

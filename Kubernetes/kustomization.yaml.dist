@@ -1,0 +1,15 @@
+﻿namespace: mrbadexxcoaching
+resources:
+  - namespace.yaml
+  - Redis/pod.yaml
+  - Redis/service.yaml
+  - Backend/pod.yaml
+  - Backend/service.yaml
+  - Backend/ingress.yaml
+
+secretGenerator:
+  - name: jwt
+    literals:
+      - key=${JWT_KEY}
+      - issuer=${JWT_ISSUER}
+      - audience=${JWT_AUDIENCE}
