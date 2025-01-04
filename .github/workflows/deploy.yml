@@ -1,0 +1,55 @@
+﻿name: Deploy
+on:
+  workflow_run:
+    types:
+      - completed
+    workflows:
+      - CD
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: self-hosted
+    steps:
+      # Setup
+      - name: Checkout
+        uses: actions/checkout@v4.2.2
+      - name: Install doctl
+        uses: digitalocean/action-doctl@v2.5.1
+        with:
+          token: ${{ secrets.DIGITALOCEAN_REGISTRY_TOKEN }}
+      - name: Install kubectl
+        uses: Azure/setup-kubectl@v4.0.0
+      - name: Setup .NET Core SDK
+        uses: actions/setup-dotnet@v4.1.0
+        with:
+          dotnet-version: 9.0.x
+      - name: Restore tools
+        run: dotnet tool restore
+      - name: Save kubeconfig
+        run: doctl kubernetes cluster kubeconfig save saveapis
+      - name: Read version
+        id: version
+        run: echo "version=$(dotnet versionize inspect)" >> "$GITHUB_OUTPUT"
+      
+      # Render
+      - name: Render kustomization
+        uses: nowactions/envsubst@v1.0.1
+        with:
+          input: ./Kubernetes/kustomization.yaml.dist
+          output: ./Kubernetes/kustomization.yaml
+        env:
+          JWT_KEY: ${{ secrets.JWT_KEY }}
+          JWT_ISSUER: ${{ secrets.JWT_ISSUER }}
+          JWT_AUDIENCE: ${{ secrets.JWT_AUDIENCE }}
+      - name: Render backend
+        uses: nowactions/envsubst@v1.0.1
+        with:
+          input: ./Kubernetes/Backend/pod.yaml.dist
+          output: ./Kubernetes/Backend/pod.yaml
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+
+      # Deploy
+      - name: Deploy
+        run: kubectl apply -k ./Kubernetes

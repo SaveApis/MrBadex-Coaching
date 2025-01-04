@@ -1,0 +1,55 @@
+﻿apiVersion: v1
+kind: Pod
+metadata:
+  name: backend
+  labels:
+    app: backend
+spec:
+  initContainers:
+    - name: wait-for-redis
+      image: busybox
+      command: ['sh', '-c', 'until nslookup redis.mrbadexxcoaching.svc.cluster.local; do echo waiting for redis; sleep 2; done;']
+  containers:
+    - name: backend
+      image: registry.digitalocean.com/saveapis/mrbadexxcoaching-backend:${VERSION}
+      imagePullPolicy: IfNotPresent
+      ports:
+        - name: backend
+          containerPort: 8080
+          protocol: TCP
+      env:
+        - name: ASPNETCORE_ENVIRONMENT
+          value: Production
+        - name: ASPNETCORE_HTTP_PORTS
+          value: "8080"
+        - name: sso_project
+          value: mrbadexx-coaching
+        - name: jwt_key
+          valueFrom:
+            secretKeyRef:
+              name: jwt
+              key: key
+        - name: jwt_issuer
+          valueFrom:
+            secretKeyRef:
+              name: jwt
+              key: issuer
+        - name: jwt_audience
+          valueFrom:
+            secretKeyRef:
+              name: jwt
+              key: audience
+        - name: jwt_expiration
+          value: "24"
+        - name: hangfire_redis_name
+          value: mrbadexx-coaching
+        - name: hangfire_redis_host
+          value: redis.mrbadexxcoaching.svc.cluster.local
+        - name: hangfire_redis_port
+          value: "6379"
+        - name: hangfire_redis_database
+          value: "0"
+        - name: hangfire_redis_prefix
+          value: "mrbadexx-coaching:hangfire:"
+  restartPolicy: Always
+  

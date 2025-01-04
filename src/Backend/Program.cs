@@ -4,7 +4,7 @@ using SaveApis.Core.Infrastructure.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.WithAssemblies(Assembly.GetExecutingAssembly()).AddSaveApis(_ => {}, AuthenticationMode.JwtWithSso);
+builder.WithAssemblies(Assembly.GetExecutingAssembly()).AddSaveApis(executorBuilder => executorBuilder.DisableIntrospection(false), AuthenticationMode.JwtWithSso);
 
 var app = builder.Build();
 
